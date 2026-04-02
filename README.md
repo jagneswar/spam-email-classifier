@@ -73,20 +73,7 @@ To use the Spam Mail Classification app, follow these steps:
    http://127.0.0.1:5000/
    ```
 
-## Author
+## Authors
 
-- **Niladri Chatterjee**
+- **Jagneswar Panda**, **Jagannath Adhikari**, **Abinash Mishra**, **Ayush Dandapat**, **Subhro Mitra**, **Biswabin Sarandeep**, **Aman Kumar Ray**
 
-### Contributors
-
-- Niladri Chatterjee - If others have contributed to this project, consider adding their names here.
-
-## License
-
-You can specify the license under which you want to distribute your project. If it's open source, you can use a popular license like MIT or Apache 2.0.
-
-## Acknowledgments
-
-Mention any libraries, tools, or resources that you used or were inspired by in your project here.
-
-Feel free to adapt this template to your project's specific needs.
