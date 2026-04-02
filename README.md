@@ -73,7 +73,7 @@ To use the Spam Mail Classification app, follow these steps:
    http://127.0.0.1:5000/
    ```
 
-## Author
+## Authors
 
-- **Jagneswar Panda**
+- **Jagneswar Panda**, **Jagannath Adhikari**, **Abinash Mishra**, **Ayush Dandapat**, **Subhro Mitra**, **Biswabin Sarandeep**, **Aman Kumar Ray**
 
