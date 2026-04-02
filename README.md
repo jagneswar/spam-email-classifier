@@ -75,11 +75,7 @@ To use the Spam Mail Classification app, follow these steps:
 
 ## Author
 
-- **Niladri Chatterjee**
-
-### Contributors
-
-- Niladri Chatterjee - If others have contributed to this project, consider adding their names here.
+- **Jagneswar Panda**
 
 ## License
 
