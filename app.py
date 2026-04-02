@@ -1,8 +1,8 @@
+import bcrypt
 from flask import Flask, render_template, request, redirect, url_for, session, flash
 import pickle
 import string
 import mysql.connector
-
 import re
 import nltk
 
@@ -11,9 +11,10 @@ from nltk.corpus import stopwords
 nltk.download('stopwords')
 nltk.download('wordnet')
 
-
 app = Flask(__name__)
 app.secret_key = '1c8073775dbc85a92ce20ebd44fd6a4fd832078f59ef16ec'
+
+app.jinja_env.globals.update(enumerate=enumerate)
 
 wnl = WordNetLemmatizer()
 
@@ -29,7 +30,8 @@ def transform_text(sms):
     lemm_words = [wnl.lemmatize(word) for word in filtered_words]
     return ' '.join(lemm_words)
 
-# Define your database connection
+
+# Database connection
 db = mysql.connector.connect(
     host="localhost",
     user="root",
@@ -37,21 +39,24 @@ db = mysql.connector.connect(
     database="smc"
 )
 
+
 @app.route('/')
 def home():
     return render_template('home.html')
+
 
 @app.route('/about')
 def about():
     return render_template('about.html')
 
+
 @app.route('/index')
 def index():
-    # Check if the 'user' session variable exists (i.e., the user is logged in)
     if 'user' in session:
         return render_template('index.html')
     else:
-        return redirect(url_for('signin'))  # Redirect to the sign-in page if the user is not logged in
+        return redirect(url_for('signin'))
+
 
 @app.route('/predict', methods=['POST'])
 def predict():
@@ -59,11 +64,57 @@ def predict():
     transformed_sms = transform_text(input_sms)
     vector_input = tfidf.transform([transformed_sms])
     result = model.predict(vector_input)[0]
-    if result == 1:
-        prediction = "Spam"
-    else:
-        prediction = "Not Spam"
+
+    prediction = "Spam" if result == 1 else "Not Spam"
+
+    # Save history
+    if 'user' in session:
+        user_id = session['user'][0]
+        cur = db.cursor()
+        cur.execute(
+            "INSERT INTO search_history (user_id, message, prediction) VALUES (%s, %s, %s)",
+            (user_id, input_sms, prediction)
+        )
+        db.commit()
+        cur.close()
+
     return render_template('result.html', prediction=prediction)
+
+
+@app.route('/dashboard')
+def dashboard():
+    if 'user' not in session:
+        return redirect(url_for('signin'))
+
+    user_id = session['user'][0]
+    cur = db.cursor()
+    cur.execute(
+        "SELECT id, message, prediction, searched_at FROM search_history WHERE user_id = %s ORDER BY searched_at DESC",
+        (user_id,)
+    )
+    history = cur.fetchall()
+    cur.close()
+
+    return render_template('dashboard.html', history=history, user=session['user'])
+
+
+@app.route('/delete_history/<int:history_id>', methods=['POST'])
+def delete_history(history_id):
+    if 'user' not in session:
+        return redirect(url_for('signin'))
+
+    user_id = session['user'][0]
+
+    cur = db.cursor()
+    cur.execute(
+        "DELETE FROM search_history WHERE id = %s AND user_id = %s",
+        (history_id, user_id)
+    )
+    db.commit()
+    cur.close()
+
+    return redirect(url_for('dashboard'))
+
 
 @app.route('/signin')
 def signin():
@@ -71,65 +122,74 @@ def signin():
         return redirect(url_for('index'))
     return render_template('signin.html')
 
+
 @app.route('/signup', methods=['GET'])
 def signup():
     return render_template('signup.html')
 
+
+# 🔐 REGISTER (HASH PASSWORD HERE)
 @app.route('/register', methods=['POST'])
 def register():
-    if request.method == 'POST':
-        full_name = request.form['full_name']
-        username = request.form['username']
-        email = request.form['email']
-        phone = request.form['phone']
-        password = request.form['password']
+    full_name = request.form['full_name'].strip()
+    username = request.form['username'].strip()
+    email = request.form['email'].strip().lower()
+    phone = request.form['phone'].strip()
+    password = request.form['password'].strip()
+    confirm_password = request.form['confirm_password']
 
-        # Ensure the password and confirm_password match
-        confirm_password = request.form['confirm_password']
-        if password != confirm_password:
-            return "Password and Confirm Password do not match."
+    if password != confirm_password:
+        return "Password and Confirm Password do not match."
 
-        # Insert data into MySQL
-        cur = db.cursor()
-        cur.execute("INSERT INTO users (full_name, username, email, phone, password) VALUES (%s, %s, %s, %s, %s)",
-                    (full_name, username, email, phone, password))
-        db.commit()
-        cur.close()
+    # HASH PASSWORD
+    hashed_password = bcrypt.hashpw(password.encode(), bcrypt.gensalt())
 
-        flash('Registration successful', 'success')
-        return redirect('/signin')
+    cur = db.cursor()
+    cur.execute(
+        "INSERT INTO users (full_name, username, email, phone, password) VALUES (%s, %s, %s, %s, %s)",
+        (full_name, username, email, phone, hashed_password.decode())
+    )
+    db.commit()
+    cur.close()
 
-    return "Invalid request method"
+    flash('Registration successful', 'success')
+    return redirect('/signin')
 
+
+# 🔐 LOGIN (CHECK HASH HERE)
 @app.route('/login', methods=['POST'])
 def login():
-    if request.method == 'POST':
-        email = request.form['email']
-        password = request.form['password']
-        remember_me = request.form.get('remember_me')  # Get the 'remember_me' checkbox value
+    email = request.form['email'].strip().lower()
+    password = request.form['password'].strip()
+    remember_me = request.form.get('remember_me')
 
-        # Query the database to check if the email and password match
-        cur = db.cursor()
-        cur.execute("SELECT * FROM users WHERE email = %s AND password = %s", (email, password))
-        user = cur.fetchone()
-        cur.close()
+    cur = db.cursor()
+    cur.execute("SELECT * FROM users WHERE email = %s", (email,))
+    user = cur.fetchone()
+    cur.close()
 
-        if user:
+    if user:
+        stored_password = user[5]
+
+        # CHECK HASH
+        if bcrypt.checkpw(password.encode(), stored_password.encode()):
             session['user'] = user
 
             if remember_me:
                 session.permanent = True
+
             return redirect(url_for('index'))
         else:
-            return "Login failed. Check your email and password."
+            return "Wrong password"
+    else:
+        return "User not found"
 
-    return "Invalid request method"
 
 @app.route('/logout')
 def logout():
-    # Clear the user session to log out
     session.pop('user', None)
-    return redirect(url_for('home'))  # Redirect to the sign-in page after logging out
+    return redirect(url_for('home'))
+
 
 if __name__ == '__main__':
     app.run(debug=True)

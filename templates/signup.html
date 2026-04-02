@@ -16,43 +16,60 @@
         <div class="content">
             <form method="POST" action="/register" onsubmit="return validateForm()">
                 <div class="user-details">
+
                     <div class="input-box">
                         <span class="details">Full Name</span>
-                        <input type="text" name="full_name" id="full_name" placeholder="e.g. John Doe" required>
+                        <input type="text" name="full_name" id="full_name" placeholder="e.g. John Doe" required autocomplete="name">
                         <span id="name-error" style="color: red;"></span>
                     </div>
+
                     <div class="input-box">
                         <span class="details">Username</span>
-                        <input type="text" name="username" id="username" placeholder="e.g. JohnDoe" required oninput="validateUsername()">
+                        <input type="text" name="username" id="username" placeholder="e.g. JohnDoe" required oninput="validateUsername()" autocomplete="username">
                         <span id="username-error" style="color: red;"></span>
                     </div>
+
                     <div class="input-box">
                         <span class="details">Email</span>
-                        <input type="email" name="email" id="email" placeholder="e.g. abc@mail.com" required>
+                        <input type="email" name="email" id="email" placeholder="e.g. abc@mail.com" required autocomplete="email">
                         <span id="email-error" style="color: red;"></span>
                     </div>
-                    <div class ="input-box">
+
+                    <div class="input-box">
                         <span class="details">Phone Number</span>
-                        <input type="text" name="phone" id="phone" placeholder="e.g. 0123456789" required>
+                        <input type="text" name="phone" id="phone" placeholder="e.g. 0123456789" required autocomplete="tel">
                     </div>
+
                     <div class="input-box">
                         <span class="details">Password</span>
                         <div class="password-input">
-                            <input type="password" name="password" id="password" placeholder="&bullet;&bullet;&bullet;&bullet;&bullet;&bullet;" required>
-                            <button type="button" id="togglePassword"><i class="fa-solid fa-eye-slash"></i></button>
+                            <input type="password" name="password" id="password"
+                                placeholder="&bullet;&bullet;&bullet;&bullet;&bullet;&bullet;"
+                                required autocomplete="new-password">
+                            <button type="button" id="togglePassword">
+                                <i class="fa-solid fa-eye-slash"></i>
+                            </button>
                         </div>
                     </div>
+
                     <div class="input-box">
                         <span class="details">Confirm Password</span>
                         <div class="password-input">
-                            <input type="password" name="confirm_password" id="confirm_password" placeholder="&bullet;&bullet;&bullet;&bullet;&bullet;&bullet;" required>
-                            <button type="button" id="toggleConfirmPassword"><i class="fa-solid fa-eye-slash"></i></button>
+                            <input type="password" name="confirm_password" id="confirm_password"
+                                placeholder="&bullet;&bullet;&bullet;&bullet;&bullet;&bullet;"
+                                required autocomplete="new-password">
+                            <button type="button" id="toggleConfirmPassword">
+                                <i class="fa-solid fa-eye-slash"></i>
+                            </button>
                         </div>
                     </div>
+
                 </div>
+
                 <div class="button">
                     <input type="submit" value="Register">
                 </div>
+
                 <div class="signup-link">
                     <center>Already a member? <a href="/signin">LogIn now</a></center>
                 </div>
