@@ -58,6 +58,15 @@ To use the Spam Mail Classification app, follow these steps:
        phone VARCHAR(15) NOT NULL,
        password VARCHAR(255) NOT NULL
    );
+
+   CREATE TABLE search_history (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    user_id INT NOT NULL,
+    message TEXT NOT NULL,
+    prediction VARCHAR(10) NOT NULL,
+    searched_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+   );
    ```
 
 6. **Run the Flask App**:
